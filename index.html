@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardianes del Agua | Juego DUA</title>
+  <style>
+    :root {
+      --azul: #176b87;
+      --azul2: #2b9eb3;
+      --claro: #eaf8fb;
+      --verde: #2d8f62;
+      --amarillo: #f3c64e;
+      --rojo: #c84b4b;
+      --texto: #17323a;
+      --blanco: #ffffff;
+      --borde: #badde5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--texto);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(43,158,179,.20), transparent 28%),
+        linear-gradient(180deg, #f7fdff, #eaf8fb);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 20px; }
+    header {
+      background: var(--blanco);
+      border: 2px solid var(--borde);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(23,107,135,.12);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 6vw, 3.4rem); color: var(--azul); }
+    h2 { color: var(--azul); }
+    .sub { font-size: 1.08rem; margin: 0; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; }
+    .chip { background: var(--claro); border:1px solid var(--borde); border-radius:999px; padding:7px 12px; font-size:.92rem; }
+    .panel {
+      background: var(--blanco);
+      border: 2px solid var(--borde);
+      border-radius: 22px;
+      padding: 22px;
+      margin-top: 18px;
+      box-shadow: 0 10px 25px rgba(23,107,135,.09);
+    }
+    .grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
+    .btn {
+      appearance:none; border:0; border-radius:16px; padding:14px 18px;
+      font-size:1rem; font-weight:700; cursor:pointer; transition:.18s;
+      background: var(--azul); color:white;
+    }
+    .btn:hover, .btn:focus { transform: translateY(-1px); outline:3px solid rgba(243,198,78,.65); }
+    .btn.secondary { background: var(--verde); }
+    .btn.light { background: var(--claro); color: var(--texto); border:2px solid var(--borde); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .question-card { text-align:center; }
+    .emoji { font-size: clamp(3rem, 10vw, 6rem); margin: 8px 0; }
+    .question { font-size: clamp(1.25rem, 3vw, 1.7rem); font-weight:700; margin: 12px 0 18px; }
+    .answers { display:grid; gap:12px; }
+    .answer {
+      width:100%; text-align:left; background:white; color:var(--texto);
+      border:2px solid var(--borde); border-radius:16px; padding:14px;
+      font-size:1rem; cursor:pointer;
+    }
+    .answer:hover, .answer:focus { border-color:var(--azul2); outline:3px solid rgba(43,158,179,.18); }
+    .answer.correct { background:#e6f7ee; border-color:var(--verde); }
+    .answer.wrong { background:#fdeaea; border-color:var(--rojo); }
+    .status { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .progress { height:12px; background:#d9edf2; border-radius:999px; overflow:hidden; flex:1; min-width:160px; }
+    .bar { height:100%; width:0%; background:var(--azul2); transition:.3s; }
+    .feedback { min-height:62px; margin-top:14px; padding:14px; border-radius:14px; background:var(--claro); border:1px solid var(--borde); }
+    .hidden { display:none !important; }
+    .dua { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+    .dua > div { background:var(--claro); border:1px solid var(--borde); border-radius:16px; padding:14px; }
+    .dua h3 { margin-top:0; color:var(--azul); }
+    .access { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin-top:12px; }
+    .toggle { background:white; border:2px solid var(--borde); border-radius:12px; padding:10px 12px; cursor:pointer; font-weight:700; }
+    body.large-text { font-size: 120%; }
+    body.high-contrast { background:#000; color:#fff; }
+    body.high-contrast .panel, body.high-contrast header { background:#111; color:#fff; border-color:#fff; }
+    body.high-contrast h1, body.high-contrast h2, body.high-contrast h3 { color:#fff; }
+    body.high-contrast .answer, body.high-contrast .toggle, body.high-contrast .btn.light { background:#111; color:#fff; border-color:#fff; }
+    body.high-contrast .feedback, body.high-contrast .dua > div, body.high-contrast .chip { background:#222; color:#fff; border-color:#fff; }
+    .result-score { font-size:3rem; color:var(--azul); font-weight:800; }
+    .note { font-size:.92rem; color:#4b6870; }
+    footer { text-align:center; padding:22px; font-size:.9rem; }
+    @media (max-width:700px) {
+      .grid, .dua { grid-template-columns:1fr; }
+      .wrap { padding:12px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div style="font-size:4rem" aria-hidden="true">💧🌎</div>
+    <h1>Guardianes del Agua</h1>
+    <p class="sub">Juego inclusivo de Ciencias Naturales para 4.º de Educación General Básica</p>
+    <div class="chips">
+      <span class="chip">10 retos</span>
+      <span class="chip">2 niveles</span>
+      <span class="chip">Retroalimentación inmediata</span>
+      <span class="chip">Diseño Universal para el Aprendizaje</span>
+    </div>
+    <div class="access" aria-label="Opciones de accesibilidad">
+      <button class="toggle" id="readBtn" type="button">🔊 Leer instrucciones</button>
+      <button class="toggle" id="largeBtn" type="button">🔎 Letra grande</button>
+      <button class="toggle" id="contrastBtn" type="button">◐ Alto contraste</button>
+    </div>
+  </header>
+
+  <section class="panel" id="intro">
+    <h2>Tu misión</h2>
+    <p>Ayuda a proteger el agua tomando buenas decisiones en la casa, la escuela y la comunidad.</p>
+    <div class="dua">
+      <div><h3>👁️ Representación</h3><p>Texto claro, íconos y lectura en voz alta.</p></div>
+      <div><h3>✋ Acción y expresión</h3><p>Responde seleccionando una opción o expresa oralmente tu decisión antes de elegir.</p></div>
+      <div><h3>❤️ Implicación</h3><p>Avanza por niveles, recibe mensajes inmediatos y repite cuando necesites.</p></div>
+    </div>
+    <p class="note"><strong>Adaptación curricular:</strong> puedes usar letra grande, lectura oral, más tiempo y completar únicamente el Nivel 1. El Nivel 2 es opcional para quienes deseen un reto adicional.</p>
+    <button class="btn" id="startBtn" type="button">Comenzar Nivel 1</button>
+  </section>
+
+  <main class="panel hidden" id="game" aria-live="polite">
+    <div class="status">
+      <strong id="levelLabel">Nivel 1</strong>
+      <div class="progress" aria-label="Progreso"><div class="bar" id="bar"></div></div>
+      <strong id="scoreLabel">0 puntos</strong>
+    </div>
+    <div class="question-card">
+      <div class="emoji" id="emoji" aria-hidden="true">💧</div>
+      <div class="question" id="question"></div>
+      <button class="btn light" id="speakQuestion" type="button">🔊 Escuchar pregunta</button>
+      <p class="note">También puedes decir tu respuesta en voz alta antes de seleccionarla.</p>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback">Selecciona una respuesta.</div>
+      <button class="btn hidden" id="nextBtn" type="button">Siguiente reto</button>
+    </div>
+  </main>
+
+  <section class="panel hidden" id="result">
+    <h2>¡Misión completada!</h2>
+    <div class="result-score" id="finalScore">0/5</div>
+    <p id="resultText"></p>
+    <div class="grid">
+      <button class="btn secondary hidden" id="level2Btn" type="button">Aceptar Nivel 2 opcional</button>
+      <button class="btn" id="restartBtn" type="button">Volver a jugar</button>
+    </div>
+  </section>
+
+  <footer>
+    Actividad didáctica inclusiva basada en el DUA · Área: Ciencias Naturales · 4.º EGB
+  </footer>
+</div>
+
+<script>
+const levels = {
+  1: [
+    {
+      emoji:"🚰",
+      q:"Al cepillarte los dientes, ¿qué acción cuida mejor el agua?",
+      options:["Dejar el grifo abierto","Cerrar el grifo mientras me cepillo","Jugar con el agua"],
+      correct:1,
+      feedback:"¡Muy bien! Cerrar el grifo evita desperdiciar varios litros de agua."
+    },
+    {
+      emoji:"🌱",
+      q:"¿Cuál es una buena forma de regar las plantas?",
+      options:["Regarlas al mediodía con mucha agua","Usar agua limpia solo una vez y botarla","Regarlas temprano o al atardecer con la cantidad necesaria"],
+      correct:2,
+      feedback:"¡Correcto! Regar temprano o al atardecer reduce la evaporación."
+    },
+    {
+      emoji:"🧼",
+      q:"Mientras te enjabonas las manos, ¿qué debes hacer?",
+      options:["Cerrar el grifo","Dejar correr el agua","Abrir dos grifos"],
+      correct:0,
+      feedback:"¡Excelente! El agua solo debe correr cuando realmente la necesitas."
+    },
+    {
+      emoji:"🔧",
+      q:"Ves un grifo que gotea en la escuela. ¿Qué haces?",
+      options:["Lo ignoro","Aviso a un adulto o docente","Juego con las gotas"],
+      correct:1,
+      feedback:"¡Buena decisión! Informar permite reparar la fuga y cuidar el agua."
+    },
+    {
+      emoji:"🌍",
+      q:"¿Por qué debemos cuidar el agua?",
+      options:["Porque todos los seres vivos la necesitan","Porque solo sirve para jugar","Porque nunca se termina"],
+      correct:0,
+      feedback:"¡Exacto! El agua es indispensable para las personas, animales y plantas."
+    }
+  ],
+  2: [
+    {
+      emoji:"🚿",
+      q:"Tu ducha dura mucho tiempo. ¿Qué cambio sería responsable?",
+      options:["Tomar duchas más cortas","Dejar el agua abierta antes de entrar","Usar más agua para terminar rápido"],
+      correct:0,
+      feedback:"¡Muy bien! Una ducha más corta reduce el consumo sin afectar la higiene."
+    },
+    {
+      emoji:"🪣",
+      q:"Quedó agua limpia después de lavar frutas. ¿Cómo puedes reutilizarla?",
+      options:["Botarla de inmediato","Usarla para regar una planta","Mezclarla con basura"],
+      correct:1,
+      feedback:"¡Excelente! Reutilizar agua limpia para las plantas es una práctica sostenible."
+    },
+    {
+      emoji:"🏫",
+      q:"Tu curso quiere cuidar el agua. ¿Qué propuesta tendría mayor impacto?",
+      options:["Hacer carteles y revisar que los grifos queden cerrados","Abrir los grifos para comprobar que funcionan","Usar agua en juegos todos los días"],
+      correct:0,
+      feedback:"¡Correcto! Informar y vigilar hábitos ayuda a toda la comunidad educativa."
+    },
+    {
+      emoji:"🍽️",
+      q:"Al lavar los platos, ¿qué práctica ahorra más agua?",
+      options:["Enjabonar con el grifo cerrado y abrirlo para enjuagar","Mantener el grifo abierto todo el tiempo","Lavar cada plato por separado con mucha agua"],
+      correct:0,
+      feedback:"¡Muy bien! Organizar el lavado reduce el tiempo que el agua permanece corriendo."
+    },
+    {
+      emoji:"🤝",
+      q:"Un compañero desperdicia agua. ¿Cómo actúas de forma inclusiva y respetuosa?",
+      options:["Me burlo de él","Le explico con respeto cómo puede cuidarla","No digo nada aunque siga desperdiciando"],
+      correct:1,
+      feedback:"¡Gran elección! Educar con respeto favorece el compromiso de todos."
+    }
+  ]
+};
+
+let currentLevel = 1;
+let index = 0;
+let score = 0;
+let locked = false;
+
+const intro = document.getElementById("intro");
+const game = document.getElementById("game");
+const result = document.getElementById("result");
+const question = document.getElementById("question");
+const emoji = document.getElementById("emoji");
+const answers = document.getElementById("answers");
+const feedback = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+const bar = document.getElementById("bar");
+const scoreLabel = document.getElementById("scoreLabel");
+const levelLabel = document.getElementById("levelLabel");
+const level2Btn = document.getElementById("level2Btn");
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) {
+    alert("La lectura en voz alta no está disponible en este navegador.");
+    return;
+  }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "es-ES";
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
+}
+
+function start(level) {
+  currentLevel = level;
+  index = 0;
+  score = 0;
+  locked = false;
+  intro.classList.add("hidden");
+  result.classList.add("hidden");
+  game.classList.remove("hidden");
+  render();
+}
+
+function render() {
+  locked = false;
+  nextBtn.classList.add("hidden");
+  feedback.textContent = "Selecciona una respuesta.";
+  const item = levels[currentLevel][index];
+  levelLabel.textContent = `Nivel ${currentLevel} · Reto ${index + 1} de ${levels[currentLevel].length}`;
+  scoreLabel.textContent = `${score} puntos`;
+  bar.style.width = `${(index / levels[currentLevel].length) * 100}%`;
+  emoji.textContent = item.emoji;
+  question.textContent = item.q;
+  answers.innerHTML = "";
+  item.options.forEach((text, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "answer";
+    b.textContent = text;
+    b.addEventListener("click", () => choose(i, b));
+    answers.appendChild(b);
+  });
+}
+
+function choose(choice, button) {
+  if (locked) return;
+  locked = true;
+  const item = levels[currentLevel][index];
+  [...answers.children].forEach((b, i) => {
+    b.disabled = true;
+    if (i === item.correct) b.classList.add("correct");
+  });
+  if (choice === item.correct) {
+    score++;
+    button.classList.add("correct");
+    feedback.textContent = `✅ ${item.feedback}`;
+  } else {
+    button.classList.add("wrong");
+    feedback.textContent = `💡 Aún puedes aprender: ${item.feedback}`;
+  }
+  scoreLabel.textContent = `${score} puntos`;
+  nextBtn.classList.remove("hidden");
+}
+
+function next() {
+  index++;
+  if (index < levels[currentLevel].length) {
+    render();
+  } else {
+    finish();
+  }
+}
+
+function finish() {
+  game.classList.add("hidden");
+  result.classList.remove("hidden");
+  document.getElementById("finalScore").textContent = `${score}/${levels[currentLevel].length}`;
+  const msg = score === 5
+    ? "¡Excelente! Tus decisiones muestran un compromiso firme con el cuidado del agua."
+    : score >= 3
+      ? "¡Buen trabajo! Revisa las retroalimentaciones y vuelve a intentarlo para fortalecer tus aprendizajes."
+      : "Cada intento es una oportunidad para aprender. Puedes repetir el nivel con calma y usar la lectura en voz alta.";
+  document.getElementById("resultText").textContent = msg;
+  level2Btn.classList.toggle("hidden", currentLevel !== 1);
+  bar.style.width = "100%";
+}
+
+document.getElementById("startBtn").addEventListener("click", () => start(1));
+document.getElementById("nextBtn").addEventListener("click", next);
+document.getElementById("restartBtn").addEventListener("click", () => {
+  if (currentLevel === 2) start(1); else start(currentLevel);
+});
+level2Btn.addEventListener("click", () => start(2));
+document.getElementById("speakQuestion").addEventListener("click", () => speak(question.textContent));
+document.getElementById("readBtn").addEventListener("click", () => speak(
+  "Tu misión es ayudar a proteger el agua. El juego tiene dos niveles. El nivel uno es obligatorio y el nivel dos es opcional. Puedes leer o escuchar las preguntas, responder seleccionando una opción y también explicar oralmente tu respuesta."
+));
+document.getElementById("largeBtn").addEventListener("click", () => document.body.classList.toggle("large-text"));
+document.getElementById("contrastBtn").addEventListener("click", () => document.body.classList.toggle("high-contrast"));
+</script>
+</body>
+</html>
